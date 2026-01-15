@@ -24,9 +24,16 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String userId, String role, String email, String firstName, String lastName, boolean isActive, boolean isVerified) {
         return Jwts.builder()
                 .setSubject(username)
+                .claim("userId", userId)
+                .claim("role", role)
+                .claim("email", email)
+                .claim("firstName", firstName)
+                .claim("lastName", lastName)
+                .claim("active", isActive)
+                .claim("verified", isVerified)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)

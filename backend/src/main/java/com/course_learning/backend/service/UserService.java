@@ -50,7 +50,7 @@ public class UserService {
     public String login(String userName, String password) {
         User user = userRepository.findByUserName(userName);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateToken(userName);
+            return jwtUtil.generateToken(userName, user.getUserId(), user.getRole(), user.getEmail(), user.getFirstName(), user.getLastName(), user.isActive(), user.isVerified());
         }
         return null;
     }
