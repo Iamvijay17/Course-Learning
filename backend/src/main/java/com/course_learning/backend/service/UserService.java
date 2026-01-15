@@ -20,4 +20,33 @@ public class UserService {
     public List<User> getAllUsers() {
         return userRepository.findAll().stream().collect(Collectors.toList());
     }
+
+    public User createUser(User userData) {
+        User user = new User();
+
+        user.setFirstName(userData.getFirstName());
+        user.setLastName(userData.getLastName());
+        user.setUserName(userData.getUserName());
+        user.setEmail(userData.getEmail());
+        user.setPassword(userData.getPassword());
+        user.setRole(userData.getRole());
+        user.setActive(true);
+        user.setCreatedAt(userData.getCreatedAt());
+        user.setUpdatedAt(userData.getUpdatedAt());
+
+        User savedUser = userRepository.save(user);
+        return savedUser;
+    }
+
+    public Boolean deleteUserById(String userId) {
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId);
+            return true;
+        }
+        return false;
+    }
+
+    public User getUserById(String userId) {
+        return userRepository.findById(userId).orElse(null);
+    }
 }

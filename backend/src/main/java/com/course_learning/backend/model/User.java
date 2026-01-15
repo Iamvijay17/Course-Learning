@@ -3,26 +3,32 @@ package com.course_learning.backend.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "users")
 public class User {
-    private Long userId;
+    @Id
+    private String userId;
     private String userName;
     private String email;
-    private String Password;
+    private String password;
     private String firstName;
     private String lastName;
-    private String role;
+    private String role = "user";
     private boolean active = true;
+    private boolean verified = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public User(String userName, String email, String Password, String firstName, String lastName, String role) {
+    public User(String userName, String email, String password, String firstName, String lastName, String role) {
         this.userName = userName;
         this.email = email;
-        this.Password = Password;
+        this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.role = role;
@@ -33,12 +39,19 @@ public class User {
     public User() {
     }
 
+    @PrePersist
+    public void generateUserId() {
+        if (this.userId == null) {
+            this.userId = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        }
+    }
+
     // Getters and Setters
-    public Long getUserId() {
+    public String getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
@@ -59,11 +72,11 @@ public class User {
     }
 
     public String getPassword() {
-        return Password;
+        return password;
     }
 
     public void setPassword(String Password) {
-        this.Password = Password;
+        this.password = Password;
     }
 
     public String getFullName() {
@@ -100,5 +113,29 @@ public class User {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isVerified() {
+        return verified;
+    }
+
+    public void setVerified(boolean verified) {
+        this.verified = verified;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
