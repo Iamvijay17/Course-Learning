@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.OrderBy;
@@ -16,31 +14,27 @@ import jakarta.persistence.OrderBy;
 import java.util.List;
 
 @Entity
-@Table(name = "modules")
-public class Module {
+@Table(name = "sections")
+public class Section {
     @Id
-    private String moduleId;
     private String sectionId;
+    private String courseId;
     private String title;
     private String description;
     private Integer orderIndex;
-    private Integer durationHours;
+    private Integer estimatedHours;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "sectionId", insertable = false, updatable = false)
-    private Section section;
-
-    @OneToMany(mappedBy = "module", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
-    private List<Lesson> lessons;
+    private List<Module> modules;
 
-    public Module() {
+    public Section() {
     }
 
-    public Module(String sectionId, String title, String description, Integer orderIndex) {
-        this.sectionId = sectionId;
+    public Section(String courseId, String title, String description, Integer orderIndex) {
+        this.courseId = courseId;
         this.title = title;
         this.description = description;
         this.orderIndex = orderIndex;
@@ -49,21 +43,13 @@ public class Module {
     }
 
     @PrePersist
-    public void generateModuleId() {
-        if (this.moduleId == null) {
-            this.moduleId = "MOD" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+    public void generateSectionId() {
+        if (this.sectionId == null) {
+            this.sectionId = "SEC" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
         }
     }
 
     // Getters and Setters
-    public String getModuleId() {
-        return moduleId;
-    }
-
-    public void setModuleId(String moduleId) {
-        this.moduleId = moduleId;
-    }
-
     public String getSectionId() {
         return sectionId;
     }
@@ -72,12 +58,12 @@ public class Module {
         this.sectionId = sectionId;
     }
 
-    public Section getSection() {
-        return section;
+    public String getCourseId() {
+        return courseId;
     }
 
-    public void setSection(Section section) {
-        this.section = section;
+    public void setCourseId(String courseId) {
+        this.courseId = courseId;
     }
 
     public String getTitle() {
@@ -104,12 +90,12 @@ public class Module {
         this.orderIndex = orderIndex;
     }
 
-    public Integer getDurationHours() {
-        return durationHours;
+    public Integer getEstimatedHours() {
+        return estimatedHours;
     }
 
-    public void setDurationHours(Integer durationHours) {
-        this.durationHours = durationHours;
+    public void setEstimatedHours(Integer estimatedHours) {
+        this.estimatedHours = estimatedHours;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -128,11 +114,11 @@ public class Module {
         this.updatedAt = updatedAt;
     }
 
-    public List<Lesson> getLessons() {
-        return lessons;
+    public List<Module> getModules() {
+        return modules;
     }
 
-    public void setLessons(List<Lesson> lessons) {
-        this.lessons = lessons;
+    public void setModules(List<Module> modules) {
+        this.modules = modules;
     }
 }

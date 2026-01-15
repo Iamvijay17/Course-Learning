@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.course_learning.backend.model.Course;
+import com.course_learning.backend.model.Section;
 import com.course_learning.backend.model.Module;
 import com.course_learning.backend.model.Lesson;
 import com.course_learning.backend.model.Video;
 import com.course_learning.backend.repository.CourseRepository;
+import com.course_learning.backend.repository.SectionRepository;
 import com.course_learning.backend.repository.ModuleRepository;
 import com.course_learning.backend.repository.LessonRepository;
 import com.course_learning.backend.repository.VideoRepository;
@@ -23,6 +25,9 @@ public class ContentService {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private SectionRepository sectionRepository;
 
     @Autowired
     private ModuleRepository moduleRepository;
@@ -35,37 +40,41 @@ public class ContentService {
 
     // ========== MODULE OPERATIONS ==========
 
-    public List<Module> getModulesByCourse(String courseId, String instructorId) {
-        // Verify course ownership
-        Course course = courseRepository.findById(courseId).orElse(null);
-        if (course == null) {
-            throw new RuntimeException("COURSE_NOT_FOUND:Course not found");
+    public List<Module> getModulesBySection(String sectionId, String instructorId) {
+        // Verify course ownership through section
+        Section section = sectionRepository.findById(sectionId).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
         }
-        if (!course.getInstructorId().equals(instructorId)) {
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
+        if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only access your own courses");
         }
 
-        return moduleRepository.findModulesByCourseIdOrdered(courseId);
+        return moduleRepository.findModulesBySectionIdOrdered(sectionId);
     }
 
-    public Module createModule(String courseId, Module moduleData, String instructorId) {
-        // Verify course ownership
-        Course course = courseRepository.findById(courseId).orElse(null);
-        if (course == null) {
-            throw new RuntimeException("COURSE_NOT_FOUND:Course not found");
+    public Module createModule(String sectionId, Module moduleData, String instructorId) {
+        // Verify course ownership through section
+        Section section = sectionRepository.findById(sectionId).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
         }
-        if (!course.getInstructorId().equals(instructorId)) {
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
+        if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
 
         // Set order index if not provided
         if (moduleData.getOrderIndex() == null) {
-            Integer maxOrder = moduleRepository.findMaxOrderIndexByCourseId(courseId);
+            Integer maxOrder = moduleRepository.findMaxOrderIndexBySectionId(sectionId);
             moduleData.setOrderIndex(maxOrder != null ? maxOrder + 1 : 0);
         }
 
         Module module = new Module();
-        module.setCourseId(courseId);
+        module.setSectionId(sectionId);
         module.setTitle(moduleData.getTitle());
         module.setDescription(moduleData.getDescription());
         module.setOrderIndex(moduleData.getOrderIndex());
@@ -81,8 +90,13 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        // Verify course ownership
-        Course course = courseRepository.findById(existingModule.getCourseId()).orElse(null);
+        // Verify course ownership through section
+        Section section = sectionRepository.findById(existingModule.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
@@ -108,8 +122,13 @@ public class ContentService {
             return false;
         }
 
-        // Verify course ownership
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        // Verify course ownership through section
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
@@ -137,8 +156,13 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        // Verify course ownership
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        // Verify course ownership through section
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only access your own courses");
         }
@@ -152,10 +176,15 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        // Verify course ownership
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        // Verify course ownership through section
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
-            throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
+            throw new RuntimeException("UNAUTHORIZED:You can only access your own courses");
         }
 
         // Set order index if not provided
@@ -188,7 +217,12 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
@@ -223,7 +257,12 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
@@ -252,7 +291,12 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
@@ -320,7 +364,12 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }
@@ -360,7 +409,9 @@ public class ContentService {
             throw new RuntimeException("COURSE_NOT_FOUND:Course not found");
         }
 
-        List<Module> modules = moduleRepository.findModulesByCourseIdOrdered(courseId);
+        List<Section> sections = sectionRepository.findSectionsByCourseIdOrdered(courseId);
+        List<String> sectionIds = sections.stream().map(Section::getSectionId).collect(Collectors.toList());
+        List<Module> modules = moduleRepository.findModulesBySectionIds(sectionIds);
         List<String> moduleIds = modules.stream().map(Module::getModuleId).collect(Collectors.toList());
 
         List<Lesson> allLessons = lessonRepository.findLessonsByModuleIds(moduleIds);
@@ -432,10 +483,14 @@ public class ContentService {
 
         for (int i = 0; i < moduleIds.size(); i++) {
             Module module = moduleRepository.findById(moduleIds.get(i)).orElse(null);
-            if (module != null && module.getCourseId().equals(courseId)) {
-                module.setOrderIndex(i);
-                module.setUpdatedAt(LocalDateTime.now());
-                moduleRepository.save(module);
+            if (module != null) {
+                // Verify the module belongs to the course through sections
+                Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+                if (section != null && section.getCourseId().equals(courseId)) {
+                    module.setOrderIndex(i);
+                    module.setUpdatedAt(LocalDateTime.now());
+                    moduleRepository.save(module);
+                }
             }
         }
     }
@@ -446,7 +501,12 @@ public class ContentService {
             throw new RuntimeException("MODULE_NOT_FOUND:Module not found");
         }
 
-        Course course = courseRepository.findById(module.getCourseId()).orElse(null);
+        Section section = sectionRepository.findById(module.getSectionId()).orElse(null);
+        if (section == null) {
+            throw new RuntimeException("SECTION_NOT_FOUND:Section not found");
+        }
+
+        Course course = courseRepository.findById(section.getCourseId()).orElse(null);
         if (course == null || !course.getInstructorId().equals(instructorId)) {
             throw new RuntimeException("UNAUTHORIZED:You can only modify your own courses");
         }

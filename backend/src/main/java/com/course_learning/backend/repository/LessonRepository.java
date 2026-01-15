@@ -23,9 +23,9 @@ public interface LessonRepository extends JpaRepository<Lesson, String> {
     @Query("SELECT MAX(l.orderIndex) FROM Lesson l WHERE l.moduleId = :moduleId")
     Integer findMaxOrderIndexByModuleId(@Param("moduleId") String moduleId);
 
-    @Query("SELECT l FROM Lesson l WHERE l.moduleId IN (SELECT m.moduleId FROM Module m WHERE m.courseId = :courseId) ORDER BY l.orderIndex ASC")
+    @Query("SELECT l FROM Lesson l WHERE l.moduleId IN (SELECT m.moduleId FROM Module m WHERE m.sectionId IN (SELECT s.sectionId FROM Section s WHERE s.courseId = :courseId)) ORDER BY l.orderIndex ASC")
     List<Lesson> findLessonsByCourseId(@Param("courseId") String courseId);
 
-    @Query("SELECT l FROM Lesson l WHERE l.isPreview = true AND l.moduleId IN (SELECT m.moduleId FROM Module m WHERE m.courseId = :courseId) ORDER BY l.orderIndex ASC")
+    @Query("SELECT l FROM Lesson l WHERE l.isPreview = true AND l.moduleId IN (SELECT m.moduleId FROM Module m WHERE m.sectionId IN (SELECT s.sectionId FROM Section s WHERE s.courseId = :courseId)) ORDER BY l.orderIndex ASC")
     List<Lesson> findPreviewLessonsByCourseId(@Param("courseId") String courseId);
 }
