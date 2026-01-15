@@ -253,6 +253,69 @@ Content-Type: application/json
 }
 ```
 
+#### Request Password Reset
+```http
+POST /api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Password reset instructions sent to your email",
+  "details": "Please check your email and follow the reset link"
+}
+```
+
+#### Verify Password Reset Token
+```http
+POST /api/auth/verify-reset-token
+Content-Type: application/json
+
+{
+  "token": "reset-token-from-email",
+  "email": "user@example.com"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Reset token is valid",
+  "data": {
+    "tokenValid": true,
+    "expiresAt": "2024-01-15T18:30:00Z"
+  }
+}
+```
+
+#### Reset Password with Token
+```http
+POST /api/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "reset-token-from-email",
+  "email": "user@example.com",
+  "newPassword": "NewSecurePass123!",
+  "confirmPassword": "NewSecurePass123!"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Password reset successfully. You can now login with your new password."
+}
+```
+
 ### User Profile Management
 
 #### Get Current User Profile
@@ -423,6 +486,69 @@ Content-Type: application/json
 ```http
 POST /api/users/resend-verification
 Authorization: Bearer <token>
+```
+
+#### Request Password Reset
+```http
+POST /api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Password reset instructions sent to your email",
+  "details": "Please check your email and follow the reset link"
+}
+```
+
+#### Verify Password Reset Token
+```http
+POST /api/auth/verify-reset-token
+Content-Type: application/json
+
+{
+  "token": "reset-token-from-email",
+  "email": "user@example.com"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Reset token is valid",
+  "data": {
+    "tokenValid": true,
+    "expiresAt": "2024-01-15T18:30:00Z"
+  }
+}
+```
+
+#### Reset Password with Token
+```http
+POST /api/auth/reset-password
+Content-Type: application/json
+
+{
+  "token": "reset-token-from-email",
+  "email": "user@example.com",
+  "newPassword": "NewSecurePass123!",
+  "confirmPassword": "NewSecurePass123!"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "message": "Password reset successfully. You can now login with your new password."
+}
 ```
 
 ## Enrollment Service APIs

@@ -1,8 +1,11 @@
 package com.course_learning.backend.service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +31,24 @@ public class UserService {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    // In-memory storage for password reset tokens (in production, use Redis or database)
+    private final Map<String, PasswordResetToken> resetTokens = new ConcurrentHashMap<>();
+
+    // Inner class for password reset token storage
+    private static class PasswordResetToken {
+        private String email;
+        private LocalDateTime expiresAt;
+
+        public PasswordResetToken(String email, LocalDateTime expiresAt) {
+            this.email = email;
+            this.expiresAt = expiresAt;
+        }
+
+        public String getEmail() { return email; }
+        public LocalDateTime getExpiresAt() { return expiresAt; }
+        public boolean isExpired() { return LocalDateTime.now().isAfter(expiresAt); }
+    }
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
@@ -281,5 +302,73 @@ public class UserService {
         // TODO: Generate and send new verification code via email
         // For now, just log the action
         System.out.println("Verification email sent to: " + user.getEmail());
+    }
+
+    // ========== PASSWORD RESET METHODS ==========
+
+    public void requestPasswordReset(String email) {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            // Don't reveal if email exists or not for security
+            return;
+        }
+
+        // Generate reset token (in production, use secure random generation)
+        String resetToken = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+
+        // Store token with 15-minute expiration
+        LocalDateTime expiresAt = LocalDateTime.now().plus(15, ChronoUnit.MINUTES);
+        resetTokens.put(resetToken, new PasswordResetToken(email, expiresAt));
+
+        // TODO: Send email with reset token
+        // For now, just log the token (in production, send via email service)
+        System.out.println("Password reset token for " + email + ": " + resetToken);
+        System.out.println("Token expires at: " + expiresAt);
+    }
+
+    public boolean verifyResetToken(String token, String email) {
+        PasswordResetToken resetToken = resetTokens.get(token);
+        if (resetToken == null) {
+            return false;
+        }
+
+        // Check if token belongs to the correct email
+        if (!resetToken.getEmail().equals(email)) {
+            return false;
+        }
+
+        // Check if token is expired
+        if (resetToken.isExpired()) {
+            resetTokens.remove(token); // Clean up expired token
+            return false;
+        }
+
+        return true;
+    }
+
+    public void resetPasswordWithToken(String token, String email, String newPassword, String confirmPassword) {
+        // Verify token first
+        if (!verifyResetToken(token, email)) {
+            throw new IllegalArgumentException("INVALID_RESET_TOKEN:Reset token is invalid or expired");
+        }
+
+        // Validate passwords match
+        if (!newPassword.equals(confirmPassword)) {
+            throw new IllegalArgumentException("PASSWORD_MISMATCH:New password and confirmation do not match");
+        }
+
+        // Find user and update password
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new IllegalArgumentException("USER_NOT_FOUND:User not found");
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        // Remove used token
+        resetTokens.remove(token);
     }
 }

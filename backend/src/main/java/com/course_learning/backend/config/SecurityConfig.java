@@ -25,6 +25,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 // Public endpoints
                 .requestMatchers("/api/auth/login", "/api/auth/register").permitAll()
+                // Password reset endpoints - public access
+                .requestMatchers("/api/auth/forgot-password", "/api/auth/verify-reset-token", "/api/auth/reset-password").permitAll()
                 // Health check
                 .requestMatchers("/api/users/health").permitAll()
                 // Allow all user endpoints - controller handles authentication internally

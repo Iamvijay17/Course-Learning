@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.course_learning.backend.config.JwtUtil;
+import com.course_learning.backend.dto.ForgotPasswordRequest;
 import com.course_learning.backend.dto.LoginRequest;
 import com.course_learning.backend.dto.LoginResponse;
+import com.course_learning.backend.dto.ResetPasswordRequest;
+import com.course_learning.backend.dto.VerifyResetTokenRequest;
 import com.course_learning.backend.model.User;
 import com.course_learning.backend.service.UserService;
 
@@ -24,6 +27,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -125,5 +129,115 @@ public class AuthController {
         // Since JWT is stateless, we just return success
         // In a production app, you might want to implement token blacklisting
         return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    // ========== PASSWORD RESET ENDPOINTS ==========
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Request password reset", description = "Send password reset instructions to user's email")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Reset instructions sent successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid email format")
+    })
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            userService.requestPasswordReset(request.getEmail());
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Password reset instructions sent to your email",
+                "details", "Please check your email and follow the reset link"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "error", "INTERNAL_ERROR",
+                "message", "Failed to process password reset request"
+            ));
+        }
+    }
+
+    @PostMapping("/verify-reset-token")
+    @Operation(summary = "Verify password reset token", description = "Verify if the reset token is valid and not expired")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Token is valid"),
+        @ApiResponse(responseCode = "400", description = "Token is invalid or expired")
+    })
+    public ResponseEntity<?> verifyResetToken(@Valid @RequestBody VerifyResetTokenRequest request) {
+        try {
+            boolean isValid = userService.verifyResetToken(request.getToken(), request.getEmail());
+            if (isValid) {
+                return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Reset token is valid",
+                    "data", Map.of("tokenValid", true)
+                ));
+            } else {
+                return ResponseEntity.status(400).body(Map.of(
+                    "success", false,
+                    "error", "INVALID_RESET_TOKEN",
+                    "message", "Reset token is invalid or expired"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "error", "INTERNAL_ERROR",
+                "message", "Failed to verify reset token"
+            ));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password with token", description = "Reset user password using valid reset token")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Password reset successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid token, password, or validation failed")
+    })
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            userService.resetPasswordWithToken(
+                request.getToken(),
+                request.getEmail(),
+                request.getNewPassword(),
+                request.getConfirmPassword()
+            );
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Password reset successfully. You can now login with your new password."
+            ));
+        } catch (IllegalArgumentException e) {
+            String errorMessage = e.getMessage();
+            if (errorMessage.startsWith("INVALID_RESET_TOKEN:")) {
+                return ResponseEntity.status(400).body(Map.of(
+                    "success", false,
+                    "error", "INVALID_RESET_TOKEN",
+                    "message", "Reset token is invalid or expired"
+                ));
+            } else if (errorMessage.startsWith("PASSWORD_MISMATCH:")) {
+                return ResponseEntity.status(400).body(Map.of(
+                    "success", false,
+                    "error", "PASSWORD_MISMATCH",
+                    "message", "New password and confirmation do not match. Please make sure both fields are identical.",
+                    "details", "Type the same password in both 'New Password' and 'Confirm Password' fields"
+                ));
+            } else if (errorMessage.startsWith("USER_NOT_FOUND:")) {
+                return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "error", "USER_NOT_FOUND",
+                    "message", "User account not found"
+                ));
+            }
+            return ResponseEntity.status(400).body(Map.of(
+                "success", false,
+                "error", "VALIDATION_ERROR",
+                "message", "Password reset failed: " + errorMessage
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "error", "INTERNAL_ERROR",
+                "message", "An unexpected error occurred during password reset"
+            ));
+        }
     }
 }
