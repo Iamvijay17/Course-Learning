@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.course_learning.backend.dto.LoginRequest;
+import com.course_learning.backend.dto.LoginResponse;
 import com.course_learning.backend.model.User;
 import com.course_learning.backend.service.UserService;
 
@@ -21,9 +23,18 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        String token = userService.login(loginRequest.getUserName(), loginRequest.getPassword());
+        if (token != null) {
+            return ResponseEntity.ok(new LoginResponse(token));
+        } else {
+            return ResponseEntity.status(401).body("Invalid credentials");
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
-        System.out.println("get all users ==================>");
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
