@@ -12,34 +12,39 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.course_learning.backend.dto.LoginRequest;
-import com.course_learning.backend.dto.LoginResponse;
 import com.course_learning.backend.model.User;
 import com.course_learning.backend.service.UserService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "User Management", description = "APIs for managing users")
 public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        String token = userService.login(loginRequest.getUserName(), loginRequest.getPassword());
-        if (token != null) {
-            return ResponseEntity.ok(new LoginResponse(token));
-        } else {
-            return ResponseEntity.status(401).body("Invalid credentials");
-        }
-    }
-
     @GetMapping
+    @Operation(summary = "Get all users", description = "Retrieve a list of all users")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Users retrieved successfully")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> getAllUsers() {
         List<User> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
     @PostMapping
+    @Operation(summary = "Create a new user", description = "Register a new user in the system")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User created successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid user data")
+    })
     public ResponseEntity<User> createUser(@RequestBody User userData) {
         User createdUser = userService.createUser(userData);
         return ResponseEntity.ok(createdUser);
@@ -48,6 +53,12 @@ public class UserController {
 
     // delete user by userid
     @DeleteMapping("/{userId}")
+    @Operation(summary = "Delete user by ID", description = "Delete a user by their user ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<?> deleteUserById(@PathVariable String userId) {
         boolean deleted = userService.deleteUserById(userId);
         if (deleted) {
@@ -59,12 +70,21 @@ public class UserController {
 
 
     @GetMapping("/{userId}")
+    @Operation(summary = "Get user by ID", description = "Retrieve a specific user by their user ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User retrieved successfully"),
+        @ApiResponse(responseCode = "404", description = "User not found")
+    })
     public ResponseEntity<User> getUserById(@PathVariable String userId) {
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
 
     @GetMapping("/health")
+    @Operation(summary = "Health check", description = "Check if the service is running")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Service is healthy")
+    })
     String healthCheck() {
         return "Hello";
     }
