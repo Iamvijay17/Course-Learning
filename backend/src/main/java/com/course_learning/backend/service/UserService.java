@@ -1,8 +1,12 @@
 package com.course_learning.backend.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+
+import com.course_learning.backend.model.User;
+import com.course_learning.backend.repository.UserRepository;
 
 @Service
 public class UserService {
@@ -14,6 +18,6 @@ public class UserService {
     }
 
     public List<User> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAll().stream().collect(Collectors.toList());
     }
 }
