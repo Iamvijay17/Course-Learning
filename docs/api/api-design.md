@@ -53,9 +53,27 @@ X-API-Key: <api_key>  // For service-to-service calls
 ```
 
 ### Role-Based Access Control
-- **STUDENT**: Read courses, enroll, track progress
-- **INSTRUCTOR**: CRUD courses, view enrollments, manage content
-- **ADMIN**: All permissions, system management
+- **STUDENT**: Read courses, enroll, track progress, manage own profile
+- **INSTRUCTOR**: CRUD courses, view enrollments, manage content, manage own profile
+- **ADMIN**: All permissions, system management, user administration
+
+### Access Control Matrix
+
+| Endpoint | Method | Access Control | Description |
+|----------|--------|----------------|-------------|
+| `/api/auth/register` | POST | Public | User registration |
+| `/api/auth/login` | POST | Public | User authentication |
+| `/api/users` | GET | Admin only | List all users |
+| `/api/users/{id}` | GET | Admin or resource owner | Get specific user |
+| `/api/users/{id}` | DELETE | Admin or resource owner | Delete user account |
+| `/api/users/profile` | GET/POST/PUT | Authenticated user | Profile management |
+| `/api/users/change-password` | PUT | Authenticated user | Password change |
+| `/api/users/change-email` | PUT | Authenticated user | Email change |
+| `/api/users/profile-picture` | POST/DELETE | Authenticated user | Profile picture management |
+| `/api/users/settings` | GET/PUT | Authenticated user | User preferences |
+| `/api/users/account` | DELETE | Authenticated user | Account deletion |
+| `/api/users/verify-email` | POST | Authenticated user | Email verification |
+| `/api/users/resend-verification` | POST | Authenticated user | Resend verification |
 
 ## API Response Format
 
@@ -201,7 +219,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "student@example.com",
+  "userName": "johnsmith",
   "password": "SecurePass123!"
 }
 ```
@@ -211,17 +229,15 @@ Response:
 {
   "success": true,
   "data": {
+    "token": "eyJhbGciOiJIUzI1NiIs...",
     "user": {
-      "id": 123,
-      "email": "student@example.com",
+      "userId": "ABC123",
+      "userName": "johnsmith",
+      "email": "john@example.com",
       "firstName": "John",
       "lastName": "Doe",
-      "role": "STUDENT"
-    },
-    "tokens": {
-      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
-      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-      "expiresIn": 3600
+      "role": "STUDENT",
+      "active": true
     }
   }
 }
@@ -239,10 +255,32 @@ Content-Type: application/json
 
 ### User Profile Management
 
-#### Get User Profile
+#### Get Current User Profile
 ```http
 GET /api/users/profile
 Authorization: Bearer <token>
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "ABC123",
+    "userName": "johnsmith",
+    "email": "john@example.com",
+    "firstName": "John",
+    "lastName": "Smith",
+    "bio": "Software developer with 5 years experience",
+    "website": "https://johnsmith.dev",
+    "profilePictureUrl": "https://cdn.example.com/profiles/abc123.jpg",
+    "role": "STUDENT",
+    "isActive": true,
+    "isVerified": true,
+    "createdAt": "2024-01-01T10:00:00Z",
+    "updatedAt": "2024-01-15T14:30:00Z"
+  }
+}
 ```
 
 #### Update User Profile
@@ -257,6 +295,134 @@ Content-Type: application/json
   "bio": "Software developer with 5 years experience",
   "website": "https://johnsmith.dev"
 }
+```
+
+#### Change Password
+```http
+PUT /api/users/change-password
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "currentPassword": "CurrentPass123!",
+  "newPassword": "NewSecurePass456!",
+  "confirmPassword": "NewSecurePass456!"
+}
+```
+
+#### Change Email
+```http
+PUT /api/users/change-email
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "newEmail": "newemail@example.com",
+  "password": "CurrentPass123!"
+}
+```
+
+#### Upload Profile Picture
+```http
+POST /api/users/profile-picture
+Authorization: Bearer <token>
+Content-Type: multipart/form-data
+
+profilePicture: <image_file>
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "profilePictureUrl": "https://cdn.example.com/profiles/abc123.jpg"
+  },
+  "message": "Profile picture updated successfully"
+}
+```
+
+#### Delete Profile Picture
+```http
+DELETE /api/users/profile-picture
+Authorization: Bearer <token>
+```
+
+#### User Settings/Preferences
+```http
+GET /api/users/settings
+Authorization: Bearer <token>
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "notifications": {
+      "emailNotifications": true,
+      "pushNotifications": false,
+      "courseUpdates": true,
+      "marketingEmails": false
+    },
+    "privacy": {
+      "profileVisibility": "PUBLIC",
+      "showProgress": true,
+      "showAchievements": true
+    },
+    "learning": {
+      "preferredLanguage": "en",
+      "autoplayVideos": true,
+      "transcriptLanguage": "en"
+    }
+  }
+}
+```
+
+#### Update User Settings
+```http
+PUT /api/users/settings
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "notifications": {
+    "emailNotifications": true,
+    "pushNotifications": false
+  },
+  "privacy": {
+    "profileVisibility": "PRIVATE"
+  }
+}
+```
+
+#### Delete User Account
+```http
+DELETE /api/users/account
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "password": "CurrentPass123!",
+  "reason": "No longer need the account"
+}
+```
+
+#### Verify Email
+```http
+POST /api/users/verify-email
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "verificationCode": "123456"
+}
+```
+
+#### Resend Email Verification
+```http
+POST /api/users/resend-verification
+Authorization: Bearer <token>
 ```
 
 ## Enrollment Service APIs
@@ -363,6 +529,17 @@ const ERROR_CODES = {
   ENROLLMENT_LIMIT_REACHED: 'ENROLLMENT_LIMIT_REACHED',
   PAYMENT_REQUIRED: 'PAYMENT_REQUIRED',
 
+  // Profile and Account Errors
+  INVALID_CURRENT_PASSWORD: 'INVALID_CURRENT_PASSWORD',
+  PASSWORD_TOO_WEAK: 'PASSWORD_TOO_WEAK',
+  EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
+  INVALID_VERIFICATION_CODE: 'INVALID_VERIFICATION_CODE',
+  ACCOUNT_ALREADY_VERIFIED: 'ACCOUNT_ALREADY_VERIFIED',
+  FILE_UPLOAD_ERROR: 'FILE_UPLOAD_ERROR',
+  INVALID_FILE_TYPE: 'INVALID_FILE_TYPE',
+  FILE_TOO_LARGE: 'FILE_TOO_LARGE',
+  ACCOUNT_DELETION_FAILED: 'ACCOUNT_DELETION_FAILED',
+
   // System Errors
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
@@ -382,6 +559,10 @@ X-RateLimit-Retry-After: 60
 
 ### Rate Limits by Endpoint
 - **Authentication endpoints**: 5 requests per minute per IP
+- **Profile operations**: 30 requests per minute per user
+- **Settings updates**: 10 requests per minute per user
+- **File uploads**: 5 requests per minute per user
+- **Account deletion**: 1 request per hour per user
 - **Course listing**: 100 requests per minute per user
 - **Course creation**: 10 requests per hour per instructor
 - **Enrollment operations**: 20 requests per minute per user

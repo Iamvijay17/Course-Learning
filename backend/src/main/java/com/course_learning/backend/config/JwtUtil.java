@@ -69,4 +69,8 @@ public class JwtUtil {
         final String extractedUsername = extractUsername(token);
         return (username.equals(extractedUsername) && !isTokenExpired(token));
     }
+
+    public String extractUserId(String token) {
+        return extractClaim(token, claims -> claims.get("userId", String.class));
+    }
 }
