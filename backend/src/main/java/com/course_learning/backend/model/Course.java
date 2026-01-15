@@ -24,6 +24,7 @@ public class Course {
     private String language;
     private Boolean isPublished = false;
     private Integer enrolledStudents = 0;
+    private Integer maxCapacity;
     private Double rating = 0.0;
     private Integer totalReviews = 0;
     private LocalDateTime createdAt;
@@ -149,6 +150,14 @@ public class Course {
 
     public void setEnrolledStudents(Integer enrolledStudents) {
         this.enrolledStudents = enrolledStudents;
+    }
+
+    public Integer getMaxCapacity() {
+        return maxCapacity;
+    }
+
+    public void setMaxCapacity(Integer maxCapacity) {
+        this.maxCapacity = maxCapacity;
     }
 
     public Double getRating() {
