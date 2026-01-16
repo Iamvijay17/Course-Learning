@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.course_learning.backend.model.Course;
 import com.course_learning.backend.model.Enrollment;
 import com.course_learning.backend.model.User;
-import com.course_learning.backend.service.ProgressService;
 import com.course_learning.backend.repository.CourseRepository;
 import com.course_learning.backend.repository.EnrollmentRepository;
 import com.course_learning.backend.repository.UserRepository;
@@ -66,7 +65,8 @@ public class EnrollmentService {
         }
 
         // Check if user is already enrolled
-        Optional<Enrollment> existingEnrollment = enrollmentRepository.findByUser_UserIdAndCourse_CourseId(userId, courseId);
+        Optional<Enrollment> existingEnrollment = enrollmentRepository.findByUser_UserIdAndCourse_CourseId(userId,
+                courseId);
         if (existingEnrollment.isPresent()) {
             Enrollment enrollment = existingEnrollment.get();
             if ("ACTIVE".equals(enrollment.getStatus())) {
@@ -131,10 +131,12 @@ public class EnrollmentService {
         }
 
         // Check if all lessons are completed before allowing course completion
-        Map<String, Object> progressSummary = progressService.getEnrollmentProgressSummary(enrollment.getEnrollmentId());
+        Map<String, Object> progressSummary = progressService
+                .getEnrollmentProgressSummary(enrollment.getEnrollmentId());
         Boolean isCompleted = (Boolean) progressSummary.get("isCompleted");
         if (!isCompleted) {
-            throw new RuntimeException("COURSE_NOT_COMPLETED:All lessons must be completed before marking the course as completed");
+            throw new RuntimeException(
+                    "COURSE_NOT_COMPLETED:All lessons must be completed before marking the course as completed");
         }
 
         // Complete enrollment

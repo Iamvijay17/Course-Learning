@@ -1,11 +1,11 @@
 package com.course_learning.backend.service;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,7 +32,8 @@ public class UserService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // In-memory storage for password reset tokens (in production, use Redis or database)
+    // In-memory storage for password reset tokens (in production, use Redis or
+    // database)
     private final Map<String, PasswordResetToken> resetTokens = new ConcurrentHashMap<>();
 
     // Inner class for password reset token storage
@@ -45,9 +46,17 @@ public class UserService {
             this.expiresAt = expiresAt;
         }
 
-        public String getEmail() { return email; }
-        public LocalDateTime getExpiresAt() { return expiresAt; }
-        public boolean isExpired() { return LocalDateTime.now().isAfter(expiresAt); }
+        public String getEmail() {
+            return email;
+        }
+
+        public LocalDateTime getExpiresAt() {
+            return expiresAt;
+        }
+
+        public boolean isExpired() {
+            return LocalDateTime.now().isAfter(expiresAt);
+        }
     }
 
     public UserService(UserRepository userRepository) {
@@ -78,7 +87,8 @@ public class UserService {
     public String login(String userName, String password) {
         User user = userRepository.findByUserName(userName);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return jwtUtil.generateToken(userName, user.getUserId(), user.getRole(), user.getEmail(), user.getFirstName(), user.getLastName(), user.isActive(), user.isVerified());
+            return jwtUtil.generateToken(userName, user.getUserId(), user.getRole(), user.getEmail(),
+                    user.getFirstName(), user.getLastName(), user.isActive(), user.isVerified());
         }
         return null;
     }
@@ -203,7 +213,8 @@ public class UserService {
         String fileName = userId + "_" + System.currentTimeMillis() + ".jpg";
         String profilePictureUrl = "https://cdn.example.com/profiles/" + fileName;
 
-        // TODO: Save profile picture URL to user entity (would need to add field to User model)
+        // TODO: Save profile picture URL to user entity (would need to add field to
+        // User model)
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
 

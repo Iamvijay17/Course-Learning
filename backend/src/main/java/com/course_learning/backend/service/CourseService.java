@@ -3,7 +3,6 @@ package com.course_learning.backend.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -282,11 +281,10 @@ public class CourseService {
                 .orElse(0.0);
 
         return Map.of(
-            "totalCourses", totalCourses,
-            "publishedCourses", publishedCoursesCount,
-            "draftCourses", draftCoursesCount,
-            "totalEnrollments", totalEnrollments,
-            "averageRating", Math.round(averageRating * 100.0) / 100.0
-        );
+                "totalCourses", totalCourses,
+                "publishedCourses", publishedCoursesCount,
+                "draftCourses", draftCoursesCount,
+                "totalEnrollments", totalEnrollments,
+                "averageRating", Math.round(averageRating * 100.0) / 100.0);
     }
 }

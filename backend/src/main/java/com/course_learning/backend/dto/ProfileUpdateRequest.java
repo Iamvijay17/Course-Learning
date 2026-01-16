@@ -1,6 +1,5 @@
 package com.course_learning.backend.dto;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
 public class ProfileUpdateRequest {
@@ -17,7 +16,8 @@ public class ProfileUpdateRequest {
     private String website;
 
     // Constructors
-    public ProfileUpdateRequest() {}
+    public ProfileUpdateRequest() {
+    }
 
     public ProfileUpdateRequest(String firstName, String lastName, String bio, String website) {
         this.firstName = firstName;
@@ -27,15 +27,35 @@ public class ProfileUpdateRequest {
     }
 
     // Getters and Setters
-    public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public String getFirstName() {
+        return firstName;
+    }
 
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
 
-    public String getBio() { return bio; }
-    public void setBio(String bio) { this.bio = bio; }
+    public String getLastName() {
+        return lastName;
+    }
 
-    public String getWebsite() { return website; }
-    public void setWebsite(String website) { this.website = website; }
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
+    }
 }
