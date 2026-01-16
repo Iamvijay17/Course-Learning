@@ -1,0 +1,724 @@
+{
+  "info": {
+    "name": "Course Learning Platform API Testing",
+    "description": "Complete API testing collection for Course Learning Platform including Certificate Generation and Enrollment Analytics. Features realtime dynamic values for enhanced testing scenarios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "course_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enrollment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "certificate_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "current_timestamp",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "random_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "random_course_code",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_session_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "new_course_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Create New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Test-Session",
+                "value": "{{test_session_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"user_{{random_user_id}}\",\n  \"email\": \"user_{{random_user_id}}@test.com\",\n  \"password\": \"TestPass123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User_{{random_course_code}}\",\n  \"role\": \"STUDENT\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    const user = pm.response.json();",
+                  "    pm.collectionVariables.set('new_user_id', user.userId || user.id);",
+                  "    console.log('New user created:', user.userName);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Test-Session",
+                "value": "{{test_session_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Updated_{{random_course_code}}\",\n  \"lastName\": \"TestUser\",\n  \"email\": \"updated_{{random_user_id}}@test.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"vijayk\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.token);",
+                  "    pm.collectionVariables.set('user_id', response.user.userId);",
+                  "    console.log('Admin login successful, token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"testuser\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('auth_token', response.token);",
+                  "    pm.collectionVariables.set('user_id', response.user.userId);",
+                  "    console.log('Student login successful, token saved');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Course Management",
+      "item": [
+        {
+          "name": "Create New Course",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Test-Session",
+                "value": "{{test_session_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Course {{random_course_code}}\",\n  \"description\": \"Comprehensive course on {{random_course_code}} created at {{current_timestamp}}\",\n  \"instructorId\": \"{{user_id}}\",\n  \"category\": \"Technology\",\n  \"level\": \"BEGINNER\",\n  \"duration\": {{$randomInt min=10 max=100}},\n  \"price\": {{$randomInt min=0 max=500}},\n  \"tags\": [\"test\", \"{{random_course_code}}\", \"automation\"],\n  \"prerequisites\": [\"Basic knowledge\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/courses",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    const course = pm.response.json();",
+                  "    pm.collectionVariables.set('new_course_id', course.courseId || course.id);",
+                  "    console.log('New course created:', course.title);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get All Courses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/courses",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const courses = pm.response.json();",
+                  "    if (courses.length > 0) {",
+                  "        pm.collectionVariables.set('course_id', courses[0].courseId);",
+                  "        console.log('Course ID saved:', courses[0].courseId);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Course Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enrollment Management",
+      "item": [
+        {
+          "name": "Enroll in Course (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Test-Session",
+                "value": "{{test_session_id}}"
+              },
+              {
+                "key": "X-Request-Time",
+                "value": "{{current_timestamp}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{course_id}}\",\n  \"enrollmentDate\": \"{{current_timestamp}}\",\n  \"status\": \"ACTIVE\",\n  \"notes\": \"Enrolled via automated testing - Session: {{test_session_id}}\",\n  \"enrollmentType\": \"SELF_PACED\",\n  \"expectedCompletionDate\": \"{{current_timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/enrollments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "enrollments"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const enrollment = pm.response.json();",
+                  "    pm.collectionVariables.set('enrollment_id', enrollment.enrollmentId);",
+                  "    console.log('Enrollment created:', enrollment.enrollmentId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get User Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/enrollments/user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "enrollments", "user"]
+            }
+          }
+        },
+        {
+          "name": "Complete Course (Student)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{course_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/enrollments/complete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "enrollments", "complete"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('Course completed successfully - Certificate should be generated');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Certificate Management",
+      "item": [
+        {
+          "name": "Get Certificate by Enrollment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/enrollment/{{enrollment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates", "enrollment", "{{enrollment_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const certificate = pm.response.json();",
+                  "    pm.collectionVariables.set('certificate_id', certificate.certificateId);",
+                  "    console.log('Certificate found:', certificate.certificateId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Certificate Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/{{certificate_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates", "{{certificate_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Download Certificate PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/download/{{certificate_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates", "download", "{{certificate_id}}"]
+            },
+            "description": "Downloads the certificate as a PDF file"
+          }
+        },
+        {
+          "name": "View Certificate PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/certificates/view/{{certificate_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "certificates", "view", "{{certificate_id}}"]
+            },
+            "description": "Views the certificate PDF inline in browser"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Enrollment Analytics",
+      "item": [
+        {
+          "name": "Get Overall Analytics (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "overview"]
+            },
+            "description": "Get comprehensive enrollment analytics overview"
+          }
+        },
+        {
+          "name": "Get Course Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "courses", "{{course_id}}"]
+            },
+            "description": "Get detailed analytics for a specific course"
+          }
+        },
+        {
+          "name": "Get Top Courses by Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/courses/top?limit=5",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "courses", "top"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            },
+            "description": "Get top 5 courses by enrollment count"
+          }
+        },
+        {
+          "name": "Get Enrollment Trends (30 days)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/trends?days=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "trends"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Get enrollment trends for the last 30 days"
+          }
+        },
+        {
+          "name": "Get Enrollment Trends (7 days)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/trends?days=7",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "trends"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "7"
+                }
+              ]
+            },
+            "description": "Get enrollment trends for the last 7 days"
+          }
+        },
+        {
+          "name": "Get Course Enrollment Trends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/courses/{{course_id}}/trends?days=30",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "courses", "{{course_id}}", "trends"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30"
+                }
+              ]
+            },
+            "description": "Get enrollment trends for a specific course"
+          }
+        },
+        {
+          "name": "Get Analytics Summary Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analytics/enrollments/summary",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analytics", "enrollments", "summary"]
+            },
+            "description": "Get combined analytics dashboard data"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Progress Tracking",
+      "item": [
+        {
+          "name": "Create Progress Entry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Test-Session",
+                "value": "{{test_session_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enrollmentId\": \"{{enrollment_id}}\",\n  \"lessonId\": \"LESSON_{{random_course_code}}\",\n  \"moduleId\": \"MODULE_{{random_course_code}}\",\n  \"watchTimeSeconds\": {{$randomInt min=300 max=1800}},\n  \"completionPercentage\": {{$randomInt min=10 max=90}},\n  \"lastAccessedAt\": \"{{current_timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201 || pm.response.code === 200) {",
+                  "    const progress = pm.response.json();",
+                  "    console.log('Progress entry created for lesson:', progress.lessonId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Enrollment Progress",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/progress/enrollment/{{enrollment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "enrollment", "{{enrollment_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Mark Lesson as Completed",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Test-Session",
+                "value": "{{test_session_id}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lessonId\": \"LESSON_{{random_course_code}}\",\n  \"watchTimeSeconds\": {{$randomInt min=1800 max=7200}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/progress/complete?timestamp={{current_timestamp}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "progress", "complete"],
+              "query": [
+                {
+                  "key": "timestamp",
+                  "value": "{{current_timestamp}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Global pre-request script - Generate realtime values",
+          "console.log('Running request:', pm.request.name);",
+          "",
+          "// Generate realtime values for testing",
+          "const now = new Date();",
+          "pm.collectionVariables.set('current_timestamp', now.toISOString());",
+          "",
+          "// Generate random user ID (8 characters)",
+          "const randomUserId = Math.random().toString(36).substring(2, 10).toUpperCase();",
+          "pm.collectionVariables.set('random_user_id', randomUserId);",
+          "",
+          "// Generate random course code (6 characters)",
+          "const randomCourseCode = Math.random().toString(36).substring(2, 8).toUpperCase();",
+          "pm.collectionVariables.set('random_course_code', randomCourseCode);",
+          "",
+          "// Generate test session ID (timestamp + random)",
+          "const timestamp = now.getTime();",
+          "const randomPart = Math.random().toString(36).substring(2, 6);",
+          "const sessionId = `${timestamp}_${randomPart}`;",
+          "pm.collectionVariables.set('test_session_id', sessionId);",
+          "",
+          "console.log('Realtime values generated:');",
+          "console.log('- Timestamp:', pm.collectionVariables.get('current_timestamp'));",
+          "console.log('- Random User ID:', pm.collectionVariables.get('random_user_id'));",
+          "console.log('- Random Course Code:', pm.collectionVariables.get('random_course_code'));",
+          "console.log('- Test Session ID:', pm.collectionVariables.get('test_session_id'));"
+        ]
+      }
+    }
+  ]
+}

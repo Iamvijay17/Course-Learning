@@ -1,0 +1,105 @@
+name: API Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: test
+          MYSQL_USER: testuser
+          MYSQL_PASSWORD: testpass
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Create test results directory
+        run: mkdir -p test-results
+
+      - name: Run JUnit Tests
+        run: |
+          cd backend
+          ../mvnw test -Dspring.profiles.active=test
+        env:
+          DB_URL: jdbc:mysql://localhost:3306/test
+          DB_USERNAME: testuser
+          DB_PASSWORD: testpass
+
+      - name: Upload JUnit test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-test-results
+          path: backend/target/surefire-reports/
+
+      - name: Start Spring Boot application
+        run: |
+          cd backend
+          ../mvnw spring-boot:run &
+          sleep 30
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/test
+          SPRING_DATASOURCE_USERNAME: testuser
+          SPRING_DATASOURCE_PASSWORD: testpass
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-html newman-reporter-json
+
+      - name: Run Postman API Tests
+        run: newman run --config newman-config.json
+
+      - name: Upload Postman test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: postman-test-results
+          path: test-results/
+
+      - name: Generate Test Summary
+        if: always()
+        run: |
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # JUnit Results
+          if [ -f "backend/target/surefire-reports/TEST-com.course_learning.backend.ApiIntegrationTest.xml" ]; then
+            echo "### JUnit Tests" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            grep -E "(tests|failures|errors)" backend/target/surefire-reports/TEST-*.xml | head -10 >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Postman Results
+          if [ -f "test-results/postman-report.json" ]; then
+            echo "### Postman API Tests" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+            jq '.run.stats' test-results/postman-report.json >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Test Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- [JUnit Test Reports](./junit-test-results)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Postman Test Reports](./postman-test-results)" >> $GITHUB_STEP_SUMMARY
