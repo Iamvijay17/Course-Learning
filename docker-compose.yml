@@ -1,0 +1,17 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: course-learning-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/test
+      SPRING_DATASOURCE_USERNAME: 47XzfkMeYUqAmF3.root
+      SPRING_DATASOURCE_PASSWORD: FSri3BmhQevWF8v0
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: true
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQLDialect
+      JWT_SECRET: a1a870ac-07b9-4481-bd32-d416d0e6a096
+      JWT_EXPIRATION: 86400000
+    ports:
+      - "8080:8080"

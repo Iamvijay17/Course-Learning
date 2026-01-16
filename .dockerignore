@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Testing
+API_TESTING_README.md
+Course-Learning-API-Testing.postman_collection.json
+newman-config.json
+postman_environment.json
+run-api-tests.sh
+
+# Logs
+*.log
+spring-boot.log
+
+# Target directories
+backend/target/
+
+# Node modules (if any)
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db

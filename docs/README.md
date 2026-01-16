@@ -152,6 +152,36 @@ Professional Google Sheets template with colors, dropdowns, and automated dashbo
 
 ## Quick Start
 
+### Running with Docker
+
+The project includes Docker support for easy local development and deployment:
+
+```bash
+# Clone repository
+git clone <repository-url>
+cd course-e-learning-platform
+
+# Start the application with Docker Compose
+docker-compose up --build
+
+# The backend will be available at http://localhost:8080
+# MySQL database will be available at localhost:3306
+```
+
+**Services included:**
+- **Backend API**: Spring Boot application on port 8080
+- **Database**: TiDB Cloud MySQL instance (remote)
+
+**Stopping the containers:**
+```bash
+docker-compose down
+```
+
+**Rebuilding after code changes:**
+```bash
+docker-compose up --build --force-recreate
+```
+
 ### For Developers
 1. **Architecture Overview**: Start with [System Architecture Overview](architecture/system-architecture-overview.md)
 2. **Service Development**: Refer to [Microservices Design](architecture/microservices-design.md) for service-specific details
