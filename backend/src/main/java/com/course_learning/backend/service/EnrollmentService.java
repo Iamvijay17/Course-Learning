@@ -34,6 +34,9 @@ public class EnrollmentService {
     @Autowired
     private ProgressService progressService;
 
+    @Autowired
+    private CertificateService certificateService;
+
     public List<Enrollment> getEnrollmentsByUser(String userId) {
         return enrollmentRepository.findByUser_UserId(userId);
     }
@@ -142,7 +145,18 @@ public class EnrollmentService {
         // Complete enrollment
         enrollment.setStatus("COMPLETED");
         enrollment.setCompletedAt(LocalDateTime.now());
-        return enrollmentRepository.save(enrollment);
+        Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
+
+        // Generate certificate for completed course
+        try {
+            certificateService.generateCertificate(savedEnrollment);
+        } catch (Exception e) {
+            // Log error but don't fail the enrollment completion
+            // Certificate can be generated later if needed
+            System.err.println("Failed to generate certificate for enrollment " + savedEnrollment.getEnrollmentId() + ": " + e.getMessage());
+        }
+
+        return savedEnrollment;
     }
 
     public boolean isCourseAvailable(Course course) {
