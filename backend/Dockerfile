@@ -1,26 +1,29 @@
-# Use OpenJDK 21 as base image
-FROM openjdk:21-jdk-slim
+# ================= BUILD STAGE =================
+FROM maven:3.9.9-eclipse-temurin-21 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
-COPY mvnw .
-COPY mvnw.cmd .
-COPY .mvn .mvn
+# Copy maven config first (for caching)
 COPY pom.xml .
+COPY .mvn .mvn
+COPY mvnw .
+RUN chmod +x mvnw
 
-# Copy source code
-COPY src ./src
+# Download dependencies (cache layer)
+RUN ./mvnw dependency:go-offline
 
-# Make mvnw executable
-RUN chmod +x ./mvnw
-
-# Build the application
+# Copy source and build
+COPY src src
 RUN ./mvnw clean package -DskipTests
 
-# Expose port 8080
+
+# ================= RUNTIME STAGE =================
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+
+COPY --from=build /app/target/backend-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
 
-# Run the application
-CMD ["java", "-jar", "target/backend-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "app.jar"]
