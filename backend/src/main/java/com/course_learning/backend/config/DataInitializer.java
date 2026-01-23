@@ -3,12 +3,16 @@ package com.course_learning.backend.config;
 import com.course_learning.backend.model.User;
 import com.course_learning.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
+
+    @Value("${app.data.initialize:true}")
+    private boolean initializeData;
 
     @Autowired
     private UserRepository userRepository;
@@ -18,6 +22,11 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        if (!initializeData) {
+            System.out.println("Data initialization is disabled");
+            return;
+        }
+
         // Create or update default admin user
         User adminUser = userRepository.findByUserName("vijayk");
         if (adminUser == null) {
